@@ -22,7 +22,7 @@ export const databaseConfig: DataSourceOptions = {
     ? [join(__dirname, '..', 'migrations', '*.js')]
     : [join(__dirname, '..', 'migrations', '*.ts')],
   migrationsTableName: 'typeorm_migrations',
-  synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
+  synchronize: process.env.TYPEORM_SYNCHRONIZE === 'false',
   logging: process.env.TYPEORM_LOGGING === 'true',
 };
 
