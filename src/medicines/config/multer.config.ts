@@ -21,7 +21,7 @@ export const multerConfig = {
     if (!allowedImageTypes.test(ext) || !allowedImageTypes.test(mimetype)) {
       return callback(
         new BadRequestException(
-          'Only image files (jpeg, jpg, png, gif, webp) are allowed!',
+          'Only image files (jpeg, jpg, png, gif, webp, jfif) are allowed!',
         ),
         false,
       );

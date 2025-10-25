@@ -4,7 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 // Allowed image file types
-const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+const allowedImageTypes = /jpeg|jpg|png|gif|webp|jfif/;
 
 export const userImageMulterConfig = {
   storage: diskStorage({
@@ -21,7 +21,7 @@ export const userImageMulterConfig = {
     if (!allowedImageTypes.test(ext) || !allowedImageTypes.test(mimetype)) {
       return callback(
         new BadRequestException(
-          'Only image files (jpeg, jpg, png, gif, webp) are allowed!',
+          'Only image files (jpeg, jpg, png, gif, webp, jfif) are allowed!',
         ),
         false,
       );
