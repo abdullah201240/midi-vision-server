@@ -1,4 +1,4 @@
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 export class UserResponseDto {
   id: string;
@@ -10,7 +10,7 @@ export class UserResponseDto {
   image?: string;
   role: string;
 
-  @Exclude()
+  @Expose()
   createdAt: Date;
 
   @Exclude()

@@ -11,6 +11,7 @@ import {
   ClassSerializerInterceptor,
   UploadedFiles,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { MedicinesService } from './medicines.service';
@@ -39,8 +40,25 @@ export class MedicinesController {
   }
 
   @Get()
-  async findAll() {
-    return this.medicinesService.findAll();
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const sortField = sortBy || 'createdAt';
+    const sortDirection = sortOrder || 'DESC';
+
+    return this.medicinesService.findAll({
+      page: pageNum,
+      limit: limitNum,
+      search,
+      sortBy: sortField,
+      sortOrder: sortDirection,
+    });
   }
 
   @Get(':id')

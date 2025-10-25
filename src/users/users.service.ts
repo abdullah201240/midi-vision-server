@@ -9,8 +9,18 @@ import { User } from './entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { PaginatedUserResponseDto } from './dto/paginated-user-response.dto';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+
+export interface FindAllUsersOptions {
+  page: number;
+  limit: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  role?: string;
+}
 
 @Injectable()
 export class UsersService {
@@ -39,9 +49,52 @@ export class UsersService {
     return new UserResponseDto(savedUser);
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.usersRepository.find();
-    return users.map((user) => new UserResponseDto(user));
+  async findAll(options?: FindAllUsersOptions): Promise<PaginatedUserResponseDto | UserResponseDto[]> {
+    // If no options provided, return all users (backward compatibility)
+    if (!options) {
+      const users = await this.usersRepository.find();
+      return users.map((user) => new UserResponseDto(user));
+    }
+
+    const { page, limit, search, sortBy = 'createdAt', sortOrder = 'DESC', role } = options;
+    
+    // Build query
+    const queryBuilder = this.usersRepository.createQueryBuilder('user');
+
+    // Apply search filter
+    if (search) {
+      queryBuilder.where(
+        '(user.name ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    // Apply role filter
+    if (role && (role === 'admin' || role === 'user')) {
+      if (search) {
+        queryBuilder.andWhere('user.role = :role', { role });
+      } else {
+        queryBuilder.where('user.role = :role', { role });
+      }
+    }
+
+    // Apply sorting
+    const validSortFields = ['name', 'email', 'role', 'createdAt'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    queryBuilder.orderBy(`user.${sortField}`, sortOrder);
+
+    // Get total count
+    const total = await queryBuilder.getCount();
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Execute query
+    const users = await queryBuilder.getMany();
+
+    const data = users.map((user) => new UserResponseDto(user));
+    return new PaginatedUserResponseDto(data, total, page, limit);
   }
 
   async findById(id: string): Promise<User | null> {

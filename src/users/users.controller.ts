@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -35,8 +36,27 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
-  async findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAll();
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+    @Query('role') role?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    const sortField = sortBy || 'createdAt';
+    const sortDirection = sortOrder || 'DESC';
+
+    return this.usersService.findAll({
+      page: pageNum,
+      limit: limitNum,
+      search,
+      sortBy: sortField,
+      sortOrder: sortDirection,
+      role,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,12 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Medicine } from './entities/medicine.entity';
 import { CreateMedicineDto } from './dto/create-medicine.dto';
 import { UpdateMedicineDto } from './dto/update-medicine.dto';
 import { MedicineResponseDto } from './dto/medicine-response.dto';
+import { PaginatedMedicineResponseDto } from './dto/paginated-response.dto';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+
+export interface FindAllOptions {
+  page: number;
+  limit: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
 
 @Injectable()
 export class MedicinesService {
@@ -28,9 +37,43 @@ export class MedicinesService {
     return new MedicineResponseDto(savedMedicine);
   }
 
-  async findAll(): Promise<MedicineResponseDto[]> {
-    const medicines = await this.medicineRepository.find();
-    return medicines.map((medicine) => new MedicineResponseDto(medicine));
+  async findAll(options?: FindAllOptions): Promise<PaginatedMedicineResponseDto | MedicineResponseDto[]> {
+    // If no options provided, return all medicines (backward compatibility)
+    if (!options) {
+      const medicines = await this.medicineRepository.find();
+      return medicines.map((medicine) => new MedicineResponseDto(medicine));
+    }
+
+    const { page, limit, search, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
+    
+    // Build query
+    const queryBuilder = this.medicineRepository.createQueryBuilder('medicine');
+
+    // Apply search filter
+    if (search) {
+      queryBuilder.where(
+        '(medicine.name ILIKE :search OR medicine.nameBn ILIKE :search OR medicine.brand ILIKE :search OR medicine.brandBn ILIKE :search OR medicine.details ILIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    // Apply sorting
+    const validSortFields = ['name', 'brand', 'origin', 'createdAt'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    queryBuilder.orderBy(`medicine.${sortField}`, sortOrder);
+
+    // Get total count
+    const total = await queryBuilder.getCount();
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Execute query
+    const medicines = await queryBuilder.getMany();
+
+    const data = medicines.map((medicine) => new MedicineResponseDto(medicine));
+    return new PaginatedMedicineResponseDto(data, total, page, limit);
   }
 
   async findOne(id: string): Promise<MedicineResponseDto> {
