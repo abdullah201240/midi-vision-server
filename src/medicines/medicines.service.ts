@@ -8,6 +8,9 @@ import { MedicineResponseDto } from './dto/medicine-response.dto';
 import { PaginatedMedicineResponseDto } from './dto/paginated-response.dto';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+import axios from 'axios';
+import FormData from 'form-data';
+import { createReadStream } from 'fs';
 
 export interface FindAllOptions {
   page: number;
@@ -149,33 +152,43 @@ export class MedicinesService {
     return new MedicineResponseDto(updatedMedicine);
   }
 
-  async searchByImage(uploadedImageName: string): Promise<MedicineResponseDto[]> {
-    // Get all medicines with images
-    const medicines = await this.medicineRepository.find();
-    const medicinesWithImages = medicines.filter(
-      (med) => med.images && med.images.length > 0
-    );
-
-    // Simple image name matching (you can enhance this with actual image comparison libraries)
-    const uploadedImagePath = join(process.cwd(), 'uploads', 'medicines', uploadedImageName);
-    
-    // For now, return all medicines with images
-    // In production, implement actual image similarity comparison using libraries like:
-    // - sharp for image processing
-    // - looks-same for image comparison
-    // - TensorFlow.js for deep learning-based similarity
-    
-    const results = medicinesWithImages.map(
-      (medicine) => new MedicineResponseDto(medicine)
-    );
-
-    // Clean up uploaded search image
+  async searchByImageML(file: Express.Multer.File): Promise<any[]> {
     try {
-      await unlink(uploadedImagePath);
-    } catch (error) {
-      console.error(`Failed to delete search image:`, error);
-    }
+      const formData = new FormData();
+      const filePath = join(process.cwd(), 'uploads', 'medicines', file.filename);
+      formData.append('image', createReadStream(filePath));
 
-    return results;
+      console.log('Sending image to ML server:', file.filename);
+
+      const response = await axios.post('http://localhost:5000/search', formData, {
+        headers: formData.getHeaders(),
+        timeout: 30000, // 30 second timeout
+      });
+
+      console.log(`ML search found ${response.data.length} results`);
+
+      // Clean up uploaded file
+      try {
+        await unlink(filePath);
+      } catch (error) {
+        console.error('Failed to delete uploaded file:', error);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('ML search error:', error.message);
+      
+      // Clean up uploaded file in case of error
+      try {
+        const filePath = join(process.cwd(), 'uploads', 'medicines', file.filename);
+        await unlink(filePath);
+      } catch (unlinkError) {
+        console.error('Failed to delete uploaded file:', unlinkError);
+      }
+
+      throw new NotFoundException(
+        'Image search failed. Make sure the ML server is running on port 5000.',
+      );
+    }
   }
 }

@@ -4,7 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 // Allowed image file types
-const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+const allowedImageTypes = /jpeg|jpg|png|gif|webp|jfif|svg/;
 
 export const multerConfig = {
   storage: diskStorage({

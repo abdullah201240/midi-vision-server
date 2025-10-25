@@ -107,6 +107,6 @@ export class MedicinesController {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
-    return this.medicinesService.searchByImage(file.filename);
+    return this.medicinesService.searchByImageML(file);
   }
 }
