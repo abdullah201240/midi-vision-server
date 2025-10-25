@@ -37,6 +37,10 @@ export class MedicinesService {
     });
 
     const savedMedicine = await this.medicineRepository.save(medicine);
+    
+    // Notify ML service about the new medicine
+    this.notifyMLService();
+    
     return new MedicineResponseDto(savedMedicine);
   }
 
@@ -104,6 +108,10 @@ export class MedicinesService {
 
     Object.assign(medicine, updateMedicineDto);
     const updatedMedicine = await this.medicineRepository.save(medicine);
+    
+    // Notify ML service about the updated medicine
+    this.notifyMLService();
+    
     return new MedicineResponseDto(updatedMedicine);
   }
 
@@ -127,6 +135,9 @@ export class MedicinesService {
     }
 
     await this.medicineRepository.remove(medicine);
+    
+    // Notify ML service about the removed medicine
+    this.notifyMLService();
   }
 
   async removeImage(id: string, imageName: string): Promise<MedicineResponseDto> {
@@ -149,6 +160,10 @@ export class MedicinesService {
     // Remove image from array
     medicine.images = medicine.images.filter((img) => img !== imageName);
     const updatedMedicine = await this.medicineRepository.save(medicine);
+    
+    // Notify ML service about the updated medicine
+    this.notifyMLService();
+    
     return new MedicineResponseDto(updatedMedicine);
   }
 
@@ -189,6 +204,22 @@ export class MedicinesService {
       throw new NotFoundException(
         'Image search failed. Make sure the ML server is running on port 5000.',
       );
+    }
+  }
+  
+  /**
+   * Notify the ML service to refresh its medicine cache
+   */
+  private async notifyMLService(): Promise<void> {
+    try {
+      // Don't wait for the response, just send the notification
+      axios.post('http://localhost:5000/refresh-medicines', {}, {
+        timeout: 5000 // 5 second timeout
+      }).catch(error => {
+        console.warn('Failed to notify ML service:', error.message);
+      });
+    } catch (error) {
+      console.warn('Error notifying ML service:', error);
     }
   }
 }
