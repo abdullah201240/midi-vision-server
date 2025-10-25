@@ -10,10 +10,11 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   UploadedFiles,
+  UploadedFile,
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { MedicinesService } from './medicines.service';
 import { CreateMedicineDto } from './dto/create-medicine.dto';
 import { UpdateMedicineDto } from './dto/update-medicine.dto';
@@ -95,5 +96,17 @@ export class MedicinesController {
     @Param('imageName') imageName: string,
   ) {
     return this.medicinesService.removeImage(id, imageName);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('search-by-image')
+  @UseInterceptors(FileInterceptor('image', multerConfig))
+  async searchByImage(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No image file provided');
+    }
+    return this.medicinesService.searchByImage(file.filename);
   }
 }

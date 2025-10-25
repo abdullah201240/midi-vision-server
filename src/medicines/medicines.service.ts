@@ -148,4 +148,34 @@ export class MedicinesService {
     const updatedMedicine = await this.medicineRepository.save(medicine);
     return new MedicineResponseDto(updatedMedicine);
   }
+
+  async searchByImage(uploadedImageName: string): Promise<MedicineResponseDto[]> {
+    // Get all medicines with images
+    const medicines = await this.medicineRepository.find();
+    const medicinesWithImages = medicines.filter(
+      (med) => med.images && med.images.length > 0
+    );
+
+    // Simple image name matching (you can enhance this with actual image comparison libraries)
+    const uploadedImagePath = join(process.cwd(), 'uploads', 'medicines', uploadedImageName);
+    
+    // For now, return all medicines with images
+    // In production, implement actual image similarity comparison using libraries like:
+    // - sharp for image processing
+    // - looks-same for image comparison
+    // - TensorFlow.js for deep learning-based similarity
+    
+    const results = medicinesWithImages.map(
+      (medicine) => new MedicineResponseDto(medicine)
+    );
+
+    // Clean up uploaded search image
+    try {
+      await unlink(uploadedImagePath);
+    } catch (error) {
+      console.error(`Failed to delete search image:`, error);
+    }
+
+    return results;
+  }
 }
