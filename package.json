@@ -29,7 +29,8 @@
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/data-source.ts",
     "seed:users": "ts-node src/seed-users.ts",
     "seed:admin": "ts-node src/seed-admin.ts",
-    "seed:admins": "ts-node src/seed-multiple-admins.ts"
+    "seed:admins": "ts-node src/seed-multiple-admins.ts",
+    "seed:medicines": "ts-node src/seed-medicines.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
