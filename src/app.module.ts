@@ -8,6 +8,8 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MedicinesModule } from './medicines/medicines.module';
+import { User } from './users/entities/user.entity';
+import { Medicine } from './medicines/entities/medicine.entity';
 import databaseConfig from './config/database.config';
 
 @Module({
@@ -28,7 +30,7 @@ import databaseConfig from './config/database.config';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      entities: [User, Medicine],
       synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
       logging: process.env.TYPEORM_LOGGING === 'true',
     }),

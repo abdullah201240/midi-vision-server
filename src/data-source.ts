@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'midi_vision',
   entities: [User, Medicine],
-  migrations: ['src/migrations/*.ts'],
+  migrations: [__dirname + '/migrations/*.ts'],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,
   logging: process.env.TYPEORM_LOGGING === 'true',

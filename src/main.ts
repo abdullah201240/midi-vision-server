@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   
   // Enable CORS for frontend communication
   const corsOrigins = process.env.CORS_ORIGINS 
@@ -25,6 +28,9 @@ async function bootstrap() {
   // Enable cookie parser
   app.use(cookieParser());
   
+  // Enable global logging interceptor
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  
 
   
   // Enable global validation pipe
@@ -41,7 +47,11 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  
+  const logger = new Logger('Bootstrap');
+  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`CORS enabled for: ${corsOrigins.join(', ')}`);
+  logger.log(`TypeORM logging: ${process.env.TYPEORM_LOGGING}`);
 }
 
 bootstrap();
