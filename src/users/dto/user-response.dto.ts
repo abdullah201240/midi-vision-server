@@ -8,7 +8,11 @@ export class UserResponseDto {
   gender?: string;
   dateOfBirth?: Date;
   image?: string;
+
+  @Exclude()
   createdAt: Date;
+
+  @Exclude()
   updatedAt: Date;
 
   @Exclude()
