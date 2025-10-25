@@ -101,7 +101,7 @@ async function seedMultipleAdmins() {
     console.log('\n✅ Admin seeding completed!');
     console.log(`Created: ${createdCount} new admin(s)`);
     console.log(`Existing: ${existingCount} admin(s)`);
-    
+
     console.log('\n📋 Admin Credentials List:');
     console.log('═'.repeat(60));
     admins.forEach((admin, index) => {
@@ -122,4 +122,4 @@ async function seedMultipleAdmins() {
   }
 }
 
-seedMultipleAdmins();
+void seedMultipleAdmins();

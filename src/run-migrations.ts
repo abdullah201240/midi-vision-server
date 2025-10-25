@@ -8,7 +8,7 @@ async function runMigrations() {
 
     console.log('Running migrations...');
     const migrations = await AppDataSource.runMigrations();
-    
+
     if (migrations.length === 0) {
       console.log('No migrations to run');
     } else {
@@ -27,4 +27,4 @@ async function runMigrations() {
   }
 }
 
-runMigrations();
+void runMigrations();

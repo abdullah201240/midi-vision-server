@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
+import type { StringValue } from 'ms';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { UsersModule } from '../users/users.module';
       useFactory: (configService: ConfigService): JwtModuleOptions => ({
         secret: configService.get<string>('JWT_SECRET') || 'default-secret',
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '7d') as any,
+          expiresIn: (configService.get('JWT_EXPIRATION') ||
+            '7d') as StringValue,
         },
       }),
       inject: [ConfigService],

@@ -101,9 +101,7 @@ export class MedicinesController {
   @UseGuards(JwtAuthGuard)
   @Post('search-by-image')
   @UseInterceptors(FileInterceptor('image', multerConfig))
-  async searchByImage(
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async searchByImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }

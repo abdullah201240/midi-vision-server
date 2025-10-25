@@ -49,15 +49,24 @@ export class UsersService {
     return new UserResponseDto(savedUser);
   }
 
-  async findAll(options?: FindAllUsersOptions): Promise<PaginatedUserResponseDto | UserResponseDto[]> {
+  async findAll(
+    options?: FindAllUsersOptions,
+  ): Promise<PaginatedUserResponseDto | UserResponseDto[]> {
     // If no options provided, return all users (backward compatibility)
     if (!options) {
       const users = await this.usersRepository.find();
       return users.map((user) => new UserResponseDto(user));
     }
 
-    const { page, limit, search, sortBy = 'createdAt', sortOrder = 'DESC', role } = options;
-    
+    const {
+      page,
+      limit,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+      role,
+    } = options;
+
     // Build query
     const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
@@ -65,7 +74,7 @@ export class UsersService {
     if (search) {
       queryBuilder.where(
         '(user.name ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 

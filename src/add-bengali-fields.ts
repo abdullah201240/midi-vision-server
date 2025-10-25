@@ -7,7 +7,7 @@ async function addBengaliFields() {
     console.log('Data source initialized successfully');
 
     console.log('\nAdding Bengali fields to medicines table...');
-    
+
     const queries = [
       `ALTER TABLE medicines ADD COLUMN IF NOT EXISTS "nameBn" VARCHAR(255)`,
       `ALTER TABLE medicines ADD COLUMN IF NOT EXISTS "brandBn" VARCHAR(255)`,
@@ -24,15 +24,20 @@ async function addBengaliFields() {
     }
 
     console.log('\n✅ Successfully added Bengali fields!');
-    
+
     // Verify the columns
-    const columns = await AppDataSource.query(`
+    interface ColumnInfo {
+      column_name: string;
+      data_type: string;
+    }
+
+    const columns: ColumnInfo[] = await AppDataSource.query(`
       SELECT column_name, data_type
       FROM information_schema.columns
       WHERE table_name = 'medicines'
       ORDER BY ordinal_position;
     `);
-    
+
     console.log('\nCurrent medicine table columns:');
     console.log(columns);
 
@@ -48,4 +53,4 @@ async function addBengaliFields() {
   }
 }
 
-addBengaliFields();
+void addBengaliFields();
