@@ -40,6 +40,6 @@ export class RegisterDto {
   dateOfBirth?: string;
 
   @IsOptional()
-  @IsString()
-  image?: string;
+  @IsEnum(['user', 'admin'])
+  role?: string;
 }

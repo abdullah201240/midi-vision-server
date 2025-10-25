@@ -8,6 +8,7 @@ export class UserResponseDto {
   gender?: string;
   dateOfBirth?: Date;
   image?: string;
+  role: string;
 
   @Exclude()
   createdAt: Date;

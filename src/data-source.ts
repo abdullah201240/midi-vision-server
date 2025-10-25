@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config as dotenvConfig } from 'dotenv';
 import { User } from './users/entities/user.entity';
+import { Medicine } from './medicines/entities/medicine.entity';
 
 // Load environment variables
 dotenvConfig({ path: '.env' });
@@ -12,11 +13,9 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'midi_vision',
-  entities: [User],
+  entities: [User, Medicine],
   migrations: ['src/migrations/*.ts'],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,
   logging: process.env.TYPEORM_LOGGING === 'true',
 });
-
-export default AppDataSource;

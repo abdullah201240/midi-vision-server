@@ -9,12 +9,15 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Res,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../users/dto/register.dto';
 import { LoginDto } from '../users/dto/login.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { userImageMulterConfig } from '../users/config/multer.config';
 
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -22,11 +25,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @UseInterceptors(FileInterceptor('image', userImageMulterConfig))
   async register(
     @Body() registerDto: RegisterDto,
+    @UploadedFile() file: Express.Multer.File,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.register(registerDto);
+    const imageName = file?.filename;
+    const result = await this.authService.register(registerDto, imageName);
     
     // Set JWT token in HTTP-only cookie
     res.cookie('access_token', result.access_token, {

@@ -32,8 +32,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
-
-  @IsOptional()
-  @IsString()
-  image?: string;
 }

@@ -10,11 +10,16 @@ import {
   NotFoundException,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { UserResponseDto } from './dto/user-response.dto';
+import { userImageMulterConfig } from './config/multer.config';
 
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -27,7 +32,8 @@ export class UsersController {
     return new UserResponseDto(req.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get()
   async findAll(): Promise<UserResponseDto[]> {
     return this.usersService.findAll();
@@ -45,14 +51,18 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
+  @UseInterceptors(FileInterceptor('image', userImageMulterConfig))
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, updateUserDto);
+    const imageName = file?.filename;
+    return this.usersService.update(id, updateUserDto, imageName);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<{ message: string }> {
     await this.usersService.remove(id);

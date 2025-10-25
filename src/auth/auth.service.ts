@@ -20,11 +20,14 @@ export class AuthService {
     return null;
   }
 
-  async register(registerDto: RegisterDto): Promise<{
+  async register(
+    registerDto: RegisterDto,
+    imageName?: string,
+  ): Promise<{
     user: UserResponseDto;
     access_token: string;
   }> {
-    const user = await this.usersService.create(registerDto);
+    const user = await this.usersService.create(registerDto, imageName);
     const access_token = await this.generateToken(user);
     return {
       user,

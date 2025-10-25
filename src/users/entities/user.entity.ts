@@ -39,6 +39,13 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   image: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['user', 'admin'],
+    default: 'user',
+  })
+  role: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
