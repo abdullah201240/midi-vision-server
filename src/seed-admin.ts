@@ -40,7 +40,7 @@ async function seedAdmin() {
     };
 
     console.log('\nCreating admin user...');
-    
+
     // Check if admin already exists
     const existingAdmin = await userRepository.findOne({
       where: { email: adminData.email },
@@ -51,7 +51,9 @@ async function seedAdmin() {
     } else {
       const admin = userRepository.create(adminData);
       await userRepository.save(admin);
-      console.log(`✓ Created admin user: ${adminData.name} (${adminData.email})`);
+      console.log(
+        `✓ Created admin user: ${adminData.name} (${adminData.email})`,
+      );
     }
 
     console.log('\n✅ Admin seeding completed successfully!');
@@ -71,4 +73,4 @@ async function seedAdmin() {
   }
 }
 
-seedAdmin();
+void seedAdmin();

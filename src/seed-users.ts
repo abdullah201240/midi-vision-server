@@ -74,7 +74,7 @@ async function seedUsers() {
     ];
 
     console.log('\nSeeding users...');
-    
+
     for (const userData of usersData) {
       // Check if user already exists
       const existingUser = await userRepository.findOne({
@@ -107,4 +107,4 @@ async function seedUsers() {
   }
 }
 
-seedUsers();
+void seedUsers();

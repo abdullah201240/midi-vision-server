@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Medicine } from './entities/medicine.entity';
 import { CreateMedicineDto } from './dto/create-medicine.dto';
 import { UpdateMedicineDto } from './dto/update-medicine.dto';
@@ -37,22 +37,30 @@ export class MedicinesService {
     });
 
     const savedMedicine = await this.medicineRepository.save(medicine);
-    
+
     // Notify ML service about the new medicine
     this.notifyMLService();
-    
+
     return new MedicineResponseDto(savedMedicine);
   }
 
-  async findAll(options?: FindAllOptions): Promise<PaginatedMedicineResponseDto | MedicineResponseDto[]> {
+  async findAll(
+    options?: FindAllOptions,
+  ): Promise<PaginatedMedicineResponseDto | MedicineResponseDto[]> {
     // If no options provided, return all medicines (backward compatibility)
     if (!options) {
       const medicines = await this.medicineRepository.find();
       return medicines.map((medicine) => new MedicineResponseDto(medicine));
     }
 
-    const { page, limit, search, sortBy = 'createdAt', sortOrder = 'DESC' } = options;
-    
+    const {
+      page,
+      limit,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = options;
+
     // Build query
     const queryBuilder = this.medicineRepository.createQueryBuilder('medicine');
 
@@ -60,7 +68,7 @@ export class MedicinesService {
     if (search) {
       queryBuilder.where(
         '(medicine.name ILIKE :search OR medicine.nameBn ILIKE :search OR medicine.brand ILIKE :search OR medicine.brandBn ILIKE :search OR medicine.details ILIKE :search)',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 
@@ -108,10 +116,10 @@ export class MedicinesService {
 
     Object.assign(medicine, updateMedicineDto);
     const updatedMedicine = await this.medicineRepository.save(medicine);
-    
+
     // Notify ML service about the updated medicine
     this.notifyMLService();
-    
+
     return new MedicineResponseDto(updatedMedicine);
   }
 
@@ -135,19 +143,24 @@ export class MedicinesService {
     }
 
     await this.medicineRepository.remove(medicine);
-    
+
     // Notify ML service about the removed medicine
     this.notifyMLService();
   }
 
-  async removeImage(id: string, imageName: string): Promise<MedicineResponseDto> {
+  async removeImage(
+    id: string,
+    imageName: string,
+  ): Promise<MedicineResponseDto> {
     const medicine = await this.medicineRepository.findOne({ where: { id } });
     if (!medicine) {
       throw new NotFoundException(`Medicine with ID "${id}" not found`);
     }
 
     if (!medicine.images || !medicine.images.includes(imageName)) {
-      throw new NotFoundException(`Image "${imageName}" not found for this medicine`);
+      throw new NotFoundException(
+        `Image "${imageName}" not found for this medicine`,
+      );
     }
 
     // Remove image from filesystem
@@ -160,25 +173,34 @@ export class MedicinesService {
     // Remove image from array
     medicine.images = medicine.images.filter((img) => img !== imageName);
     const updatedMedicine = await this.medicineRepository.save(medicine);
-    
+
     // Notify ML service about the updated medicine
     this.notifyMLService();
-    
+
     return new MedicineResponseDto(updatedMedicine);
   }
 
   async searchByImageML(file: Express.Multer.File): Promise<any[]> {
     try {
       const formData = new FormData();
-      const filePath = join(process.cwd(), 'uploads', 'medicines', file.filename);
+      const filePath = join(
+        process.cwd(),
+        'uploads',
+        'medicines',
+        file.filename,
+      );
       formData.append('image', createReadStream(filePath));
 
       console.log('Sending image to ML server:', file.filename);
 
-      const response = await axios.post('http://localhost:5000/search', formData, {
-        headers: formData.getHeaders(),
-        timeout: 30000, // 30 second timeout
-      });
+      const response = await axios.post<any[]>(
+        'http://localhost:5001/search',
+        formData,
+        {
+          headers: formData.getHeaders(),
+          timeout: 30000, // 30 second timeout
+        },
+      );
 
       console.log(`ML search found ${response.data.length} results`);
 
@@ -191,35 +213,46 @@ export class MedicinesService {
 
       return response.data;
     } catch (error) {
-      console.error('ML search error:', error.message);
-      
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error('ML search error:', errorMessage);
+
       // Clean up uploaded file in case of error
       try {
-        const filePath = join(process.cwd(), 'uploads', 'medicines', file.filename);
+        const filePath = join(
+          process.cwd(),
+          'uploads',
+          'medicines',
+          file.filename,
+        );
         await unlink(filePath);
       } catch (unlinkError) {
         console.error('Failed to delete uploaded file:', unlinkError);
       }
 
       throw new NotFoundException(
-        'Image search failed. Make sure the ML server is running on port 5000.',
+        'Image search failed. Make sure the ML server is running on port 5001.',
       );
     }
   }
-  
+
   /**
    * Notify the ML service to refresh its medicine cache
    */
-  private async notifyMLService(): Promise<void> {
-    try {
-      // Don't wait for the response, just send the notification
-      axios.post('http://localhost:5000/refresh-medicines', {}, {
-        timeout: 5000 // 5 second timeout
-      }).catch(error => {
-        console.warn('Failed to notify ML service:', error.message);
+  private notifyMLService(): void {
+    // Don't wait for the response, just send the notification
+    void axios
+      .post(
+        'http://localhost:5001/refresh-medicines',
+        {},
+        {
+          timeout: 5000, // 5 second timeout
+        },
+      )
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.warn('Failed to notify ML service:', errorMessage);
       });
-    } catch (error) {
-      console.warn('Error notifying ML service:', error);
-    }
   }
 }

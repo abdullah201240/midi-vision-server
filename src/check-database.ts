@@ -20,7 +20,7 @@ async function checkDatabase() {
 
     // Check migrations
     const migrations = await AppDataSource.query(
-      'SELECT * FROM typeorm_migrations ORDER BY timestamp DESC'
+      'SELECT * FROM typeorm_migrations ORDER BY timestamp DESC',
     );
     console.log('\nApplied migrations:');
     console.log(migrations);
