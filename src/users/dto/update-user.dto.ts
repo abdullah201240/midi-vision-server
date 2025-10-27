@@ -49,4 +49,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @IsOptional()
+  @IsEnum(['user', 'admin'])
+  role?: string;
 }

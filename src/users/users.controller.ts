@@ -17,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -144,6 +145,20 @@ export class UsersController {
   ): Promise<UserResponseDto> {
     const imageName = file?.filename;
     return this.usersService.update(id, updateUserDto, imageName);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Put(':id/role')
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ): Promise<UserResponseDto> {
+    // Create an UpdateUserDto with only the role field
+    const updateData = new UpdateUserDto();
+    updateData.role = updateUserRoleDto.role;
+    const user = await this.usersService.update(id, updateData);
+    return new UserResponseDto(user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
