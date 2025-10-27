@@ -8,6 +8,7 @@ export class UserResponseDto {
   gender?: string;
   dateOfBirth?: Date;
   image?: string;
+  coverPhoto?: string;
   role: string;
 
   @Expose()

@@ -39,6 +39,9 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   image: string;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  coverPhoto: string;
+
   @Column({
     type: 'enum',
     enum: ['user', 'admin'],

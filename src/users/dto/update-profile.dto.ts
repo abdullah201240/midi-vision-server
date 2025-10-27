@@ -8,7 +8,7 @@ import {
   Matches,
 } from 'class-validator';
 
-export class UpdateUserDto {
+export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @MinLength(2)
@@ -32,6 +32,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsDateString()
   dateOfBirth?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
 
   @IsOptional()
   @IsString()

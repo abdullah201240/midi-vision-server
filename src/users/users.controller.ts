@@ -16,6 +16,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -37,10 +38,37 @@ export class UsersController {
   @Put('profile')
   async updateProfile(
     @Request() req,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
     // Ensure user can only update their own profile
-    const user = await this.usersService.update(req.user.id, updateUserDto);
+    const user = await this.usersService.update(req.user.id, updateProfileDto);
+    return new UserResponseDto(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile/image')
+  @UseInterceptors(FileInterceptor('image', userImageMulterConfig))
+  async updateProfileImage(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UserResponseDto> {
+    const imageName = file?.filename;
+    const updateProfileDto = new UpdateProfileDto();
+    const user = await this.usersService.update(req.user.id, updateProfileDto, imageName);
+    return new UserResponseDto(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile/cover')
+  @UseInterceptors(FileInterceptor('coverPhoto', userImageMulterConfig))
+  async updateProfileCover(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UserResponseDto> {
+    const coverPhotoName = file?.filename;
+    const updateProfileDto = new UpdateProfileDto();
+    updateProfileDto.coverPhoto = coverPhotoName;
+    const user = await this.usersService.update(req.user.id, updateProfileDto, undefined, coverPhotoName);
     return new UserResponseDto(user);
   }
 

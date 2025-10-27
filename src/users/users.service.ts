@@ -120,6 +120,7 @@ export class UsersService {
     id: string,
     updateUserDto: UpdateUserDto,
     newImage?: string,
+    newCoverPhoto?: string,
   ): Promise<UserResponseDto> {
     const user = await this.findById(id);
     if (!user) {
@@ -142,9 +143,21 @@ export class UsersService {
       }
     }
 
+    // Delete old cover photo if new cover photo is uploaded
+    if (newCoverPhoto && user.coverPhoto) {
+      try {
+        await unlink(join(process.cwd(), 'uploads', 'users', user.coverPhoto));
+      } catch (error) {
+        console.error(`Failed to delete old cover photo ${user.coverPhoto}:`, error);
+      }
+    }
+
     Object.assign(user, updateUserDto);
     if (newImage) {
       user.image = newImage;
+    }
+    if (newCoverPhoto) {
+      user.coverPhoto = newCoverPhoto;
     }
 
     const updatedUser = await this.usersRepository.save(user);
