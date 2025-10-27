@@ -35,5 +35,18 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  coverPhoto?: string;
+  image?: string | null;
+
+  @IsOptional()
+  @IsString()
+  coverPhoto?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  location?: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
 }

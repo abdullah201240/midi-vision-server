@@ -72,6 +72,32 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Delete('profile/cover')
+  async removeProfileCover(@Request() req): Promise<UserResponseDto> {
+    // Create an update DTO to set cover photo to null
+    const updateProfileDto = new UpdateProfileDto();
+    updateProfileDto.coverPhoto = null;
+
+    // Update the user to delete the cover photo
+    const updatedUser = await this.usersService.update(req.user.id, updateProfileDto);
+
+    return new UserResponseDto(updatedUser);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('profile/image')
+  async removeProfileImage(@Request() req): Promise<UserResponseDto> {
+    // Create an update DTO to set image to null
+    const updateProfileDto = new UpdateProfileDto();
+    updateProfileDto.image = null;
+
+    // Update the user to delete the image
+    const updatedUser = await this.usersService.update(req.user.id, updateProfileDto);
+
+    return new UserResponseDto(updatedUser);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()

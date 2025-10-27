@@ -7,9 +7,11 @@ export class UserResponseDto {
   phone?: string;
   gender?: string;
   dateOfBirth?: Date;
-  image?: string;
-  coverPhoto?: string;
+  image?: string | null;
+  coverPhoto?: string | null;
   role: string;
+  location?: string;
+  bio?: string;
 
   @Expose()
   createdAt: Date;

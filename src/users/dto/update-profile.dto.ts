@@ -34,10 +34,17 @@ export class UpdateProfileDto {
   dateOfBirth?: string;
 
   @IsOptional()
-  @IsString()
-  image?: string;
+  image?: string | null;
+
+  @IsOptional()
+  coverPhoto?: string | null;
 
   @IsOptional()
   @IsString()
-  coverPhoto?: string;
+  @MinLength(2)
+  location?: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
 }

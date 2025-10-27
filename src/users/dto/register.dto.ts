@@ -42,4 +42,13 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(['user', 'admin'])
   role?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  location?: string;
+
+  @IsOptional()
+  @IsString()
+  bio?: string;
 }

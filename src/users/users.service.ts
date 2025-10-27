@@ -121,6 +121,8 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     newImage?: string,
     newCoverPhoto?: string,
+    deleteImage: boolean = false,
+    deleteCoverPhoto: boolean = false,
   ): Promise<UserResponseDto> {
     const user = await this.findById(id);
     if (!user) {
@@ -134,8 +136,8 @@ export class UsersService {
       }
     }
 
-    // Delete old image if new image is uploaded
-    if (newImage && user.image) {
+    // Delete old image if new image is uploaded or if explicitly requested
+    if ((newImage && user.image) || (deleteImage && user.image) || (updateUserDto.image === null && user.image)) {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
@@ -143,8 +145,8 @@ export class UsersService {
       }
     }
 
-    // Delete old cover photo if new cover photo is uploaded
-    if (newCoverPhoto && user.coverPhoto) {
+    // Delete old cover photo if new cover photo is uploaded or if explicitly requested
+    if ((newCoverPhoto && user.coverPhoto) || (deleteCoverPhoto && user.coverPhoto) || (updateUserDto.coverPhoto === null && user.coverPhoto)) {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.coverPhoto));
       } catch (error) {
@@ -153,11 +155,16 @@ export class UsersService {
     }
 
     Object.assign(user, updateUserDto);
-    if (newImage) {
+    if (newImage !== undefined) {
       user.image = newImage;
+    } else if (updateUserDto.image === null) {
+      user.image = null;
     }
-    if (newCoverPhoto) {
+    
+    if (newCoverPhoto !== undefined) {
       user.coverPhoto = newCoverPhoto;
+    } else if (updateUserDto.coverPhoto === null) {
+      user.coverPhoto = null;
     }
 
     const updatedUser = await this.usersRepository.save(user);

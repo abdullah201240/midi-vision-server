@@ -37,10 +37,16 @@ export class User {
   dateOfBirth: Date;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  image: string;
+  image: string | null;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  coverPhoto: string;
+  coverPhoto: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  location: string;
+
+  @Column({ type: 'text', nullable: true })
+  bio: string;
 
   @Column({
     type: 'enum',
