@@ -33,6 +33,17 @@ export class UsersController {
     return new UserResponseDto(req.user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(
+    @Request() req,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    // Ensure user can only update their own profile
+    const user = await this.usersService.update(req.user.id, updateUserDto);
+    return new UserResponseDto(user);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
