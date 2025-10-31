@@ -198,7 +198,7 @@ export class MedicinesService {
         formData,
         {
           headers: formData.getHeaders(),
-          timeout: 30000, // 30 second timeout
+          timeout: 60000, // 60 second timeout for large image processing
         },
       );
 
@@ -230,6 +230,17 @@ export class MedicinesService {
         console.error('Failed to delete uploaded file:', unlinkError);
       }
 
+      // Check if it's a timeout error
+      if (
+        error instanceof Error &&
+        (errorMessage.includes('timeout') ||
+          errorMessage.includes('ECONNABORTED'))
+      ) {
+        throw new NotFoundException(
+          'Image search timed out. The image might be too large or the ML server is busy. Please try again.',
+        );
+      }
+
       throw new NotFoundException(
         'Image search failed. Make sure the ML server is running on port 5001.',
       );
@@ -246,9 +257,12 @@ export class MedicinesService {
         'http://localhost:5001/refresh-medicines',
         {},
         {
-          timeout: 5000, // 5 second timeout
+          timeout: 10000, // 10 second timeout
         },
       )
+      .then((response) => {
+        console.log('ML service notified successfully:', response.data);
+      })
       .catch((error) => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);

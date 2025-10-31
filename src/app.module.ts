@@ -16,7 +16,7 @@ import databaseConfig from './config/database.config';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
+      serveRoot: '/uploads/',
     }),
     ConfigModule.forRoot({
       isGlobal: true,
