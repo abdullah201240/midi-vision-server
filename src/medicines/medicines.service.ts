@@ -181,14 +181,10 @@ export class MedicinesService {
   }
 
   async searchByImageML(file: Express.Multer.File): Promise<any[]> {
+    const filePath = join(process.cwd(), 'uploads', 'medicines', file.filename);
+
     try {
       const formData = new FormData();
-      const filePath = join(
-        process.cwd(),
-        'uploads',
-        'medicines',
-        file.filename,
-      );
       formData.append('image', createReadStream(filePath));
 
       console.log('Sending image to ML server:', file.filename);
@@ -199,6 +195,8 @@ export class MedicinesService {
         {
           headers: formData.getHeaders(),
           timeout: 60000, // 60 second timeout for large image processing
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
         },
       );
 
@@ -219,12 +217,6 @@ export class MedicinesService {
 
       // Clean up uploaded file in case of error
       try {
-        const filePath = join(
-          process.cwd(),
-          'uploads',
-          'medicines',
-          file.filename,
-        );
         await unlink(filePath);
       } catch (unlinkError) {
         console.error('Failed to delete uploaded file:', unlinkError);
@@ -241,8 +233,18 @@ export class MedicinesService {
         );
       }
 
+      // Check if it's a connection error (ML server might have crashed)
+      if (
+        errorMessage.includes('ECONNREFUSED') ||
+        errorMessage.includes('connect ECONNREFUSED')
+      ) {
+        throw new NotFoundException(
+          'Unable to connect to the ML server. The ML server might have crashed or is not running. Please contact the system administrator.',
+        );
+      }
+
       throw new NotFoundException(
-        'Image search failed. Make sure the ML server is running on port 5001.',
+        `Image search failed: ${errorMessage}. Make sure the ML server is running on port 5001.`,
       );
     }
   }
