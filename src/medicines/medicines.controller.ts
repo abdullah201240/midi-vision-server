@@ -12,6 +12,7 @@ import {
   UploadedFiles,
   UploadedFile,
   BadRequestException,
+  NotFoundException,
   Query,
 } from '@nestjs/common';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
@@ -101,10 +102,33 @@ export class MedicinesController {
   @UseGuards(JwtAuthGuard)
   @Post('search-by-image')
   @UseInterceptors(FileInterceptor('image', multerConfig))
-  async searchByImage(@UploadedFile() file: Express.Multer.File) {
+  async searchByImage(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any[]> {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
-    return this.medicinesService.searchByImageML(file);
+
+    try {
+      const results = await this.medicinesService.searchByImageML(file);
+
+      // If no results found, return empty array instead of throwing error
+      if (!results || results.length === 0) {
+        return [];
+      }
+
+      return results;
+    } catch (error) {
+      // Log the error for debugging but don't expose internal details to client
+      console.error('Image search error:', error);
+
+      // Return empty array for non-medical images instead of error
+      if (error instanceof NotFoundException) {
+        return [];
+      }
+
+      // Re-throw other errors
+      throw error;
+    }
   }
 }

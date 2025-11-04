@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class UpdateUserImageFieldsToNullable1761546276200 implements MigrationInterface {
+export class UpdateUserImageFieldsToNullable1761546276200
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Update image column to explicitly allow null
     await queryRunner.changeColumn(

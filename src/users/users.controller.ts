@@ -55,7 +55,11 @@ export class UsersController {
   ): Promise<UserResponseDto> {
     const imageName = file?.filename;
     const updateProfileDto = new UpdateProfileDto();
-    const user = await this.usersService.update(req.user.id, updateProfileDto, imageName);
+    const user = await this.usersService.update(
+      req.user.id,
+      updateProfileDto,
+      imageName,
+    );
     return new UserResponseDto(user);
   }
 
@@ -69,7 +73,12 @@ export class UsersController {
     const coverPhotoName = file?.filename;
     const updateProfileDto = new UpdateProfileDto();
     updateProfileDto.coverPhoto = coverPhotoName;
-    const user = await this.usersService.update(req.user.id, updateProfileDto, undefined, coverPhotoName);
+    const user = await this.usersService.update(
+      req.user.id,
+      updateProfileDto,
+      undefined,
+      coverPhotoName,
+    );
     return new UserResponseDto(user);
   }
 
@@ -81,7 +90,10 @@ export class UsersController {
     updateProfileDto.coverPhoto = null;
 
     // Update the user to delete the cover photo
-    const updatedUser = await this.usersService.update(req.user.id, updateProfileDto);
+    const updatedUser = await this.usersService.update(
+      req.user.id,
+      updateProfileDto,
+    );
 
     return new UserResponseDto(updatedUser);
   }
@@ -94,7 +106,10 @@ export class UsersController {
     updateProfileDto.image = null;
 
     // Update the user to delete the image
-    const updatedUser = await this.usersService.update(req.user.id, updateProfileDto);
+    const updatedUser = await this.usersService.update(
+      req.user.id,
+      updateProfileDto,
+    );
 
     return new UserResponseDto(updatedUser);
   }
