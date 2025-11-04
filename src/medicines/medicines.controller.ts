@@ -14,6 +14,7 @@ import {
   BadRequestException,
   NotFoundException,
   Query,
+  Request,
 } from '@nestjs/common';
 import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { MedicinesService } from './medicines.service';
@@ -23,6 +24,35 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { multerConfig } from './config/multer.config';
+import { SearchResultDto } from '../users/dto/search-result.dto';
+
+interface AuthenticatedRequest {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    [key: string]: any;
+  };
+}
+
+// Extend SearchResultDto to include ML-specific fields
+interface MLSearchResult extends SearchResultDto {
+  matched_image?: string;
+  similarity?: number;
+  confidence?: string;
+}
+
+// Define interface for user history data
+interface UserHistoryData {
+  actionType: string;
+  imageData: string;
+  resultData: MLSearchResult[] | null;
+  isSuccessful: boolean;
+  userId?: string;
+  medicineId?: string;
+  errorMessage?: string;
+}
 
 @Controller('medicines')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -103,14 +133,36 @@ export class MedicinesController {
   @Post('search-by-image')
   @UseInterceptors(FileInterceptor('image', multerConfig))
   async searchByImage(
+    @Request() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<any[]> {
+  ): Promise<MLSearchResult[]> {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }
 
     try {
-      const results = await this.medicinesService.searchByImageML(file);
+      const results = (await this.medicinesService.searchByImageML(
+        file,
+      )) as MLSearchResult[];
+
+      // Save user history
+      try {
+        const historyData: UserHistoryData = {
+          actionType: 'scan',
+          imageData: file.filename,
+          resultData: results,
+          isSuccessful: true,
+          userId: req.user?.id,
+        };
+
+        if (results && results.length > 0 && results[0]?.id) {
+          historyData.medicineId = results[0].id;
+        }
+
+        await this.medicinesService.saveUserHistory(historyData);
+      } catch (historyError) {
+        console.error('Failed to save user history:', historyError);
+      }
 
       // If no results found, return empty array instead of throwing error
       if (!results || results.length === 0) {
@@ -119,6 +171,25 @@ export class MedicinesController {
 
       return results;
     } catch (error) {
+      // Save user history for failed scan
+      try {
+        const historyData: UserHistoryData = {
+          actionType: 'scan',
+          imageData: file.filename,
+          resultData: null,
+          isSuccessful: false,
+          errorMessage: (error as Error).message || 'Unknown error',
+          userId: req.user?.id,
+        };
+
+        await this.medicinesService.saveUserHistory(historyData);
+      } catch (historyError) {
+        console.error(
+          'Failed to save user history for failed scan:',
+          historyError,
+        );
+      }
+
       // Log the error for debugging but don't expose internal details to client
       console.error('Image search error:', error);
 

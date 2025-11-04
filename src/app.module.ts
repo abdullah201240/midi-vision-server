@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MedicinesModule } from './medicines/medicines.module';
 import { User } from './users/entities/user.entity';
+import { UserHistory } from './users/entities/user-history.entity';
 import { Medicine } from './medicines/entities/medicine.entity';
 import databaseConfig from './config/database.config';
 
@@ -30,7 +31,7 @@ import databaseConfig from './config/database.config';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [User, Medicine],
+      entities: [User, UserHistory, Medicine],
       synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
       logging: process.env.TYPEORM_LOGGING === 'true',
     }),

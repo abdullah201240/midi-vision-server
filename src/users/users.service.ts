@@ -6,12 +6,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UserHistory } from './entities/user-history.entity';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { PaginatedUserResponseDto } from './dto/paginated-user-response.dto';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+import { Medicine } from '../medicines/entities/medicine.entity';
 
 export interface FindAllUsersOptions {
   page: number;
@@ -22,11 +24,25 @@ export interface FindAllUsersOptions {
   role?: string;
 }
 
+interface UserHistoryData {
+  actionType: 'scan' | 'upload' | 'view';
+  imageData: string;
+  resultData: any[] | null;
+  isSuccessful: boolean;
+  errorMessage?: string;
+  userId?: string;
+  medicineId?: string;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(UserHistory)
+    private userHistoryRepository: Repository<UserHistory>,
+    @InjectRepository(Medicine)
+    private medicineRepository: Repository<Medicine>,
   ) {}
 
   async create(
@@ -198,5 +214,49 @@ export class UsersService {
     }
 
     await this.usersRepository.remove(user);
+  }
+
+  async createUserHistory(historyData: UserHistoryData): Promise<UserHistory> {
+    // Create the history entity
+    const history = new UserHistory();
+
+    // Set scalar properties with type safety
+    history.actionType = historyData.actionType;
+    history.imageData = historyData.imageData;
+    history.resultData = historyData.resultData;
+    history.isSuccessful = historyData.isSuccessful;
+    history.errorMessage = historyData.errorMessage || '';
+
+    // Set up the user relationship properly
+    if (historyData.userId) {
+      const user = await this.findById(historyData.userId);
+      if (user) {
+        history.user = user;
+      }
+    }
+
+    // Set up the medicine relationship if medicineId is provided
+    if (historyData.medicineId) {
+      const medicine = await this.medicineRepository.findOne({
+        where: { id: historyData.medicineId },
+      });
+      if (medicine) {
+        history.medicine = medicine;
+      }
+    }
+
+    return await this.userHistoryRepository.save(history);
+  }
+
+  async getUserHistory(
+    userId: string,
+    limit: number = 20,
+  ): Promise<UserHistory[]> {
+    return await this.userHistoryRepository
+      .createQueryBuilder('history')
+      .where('history.user_id = :userId', { userId })
+      .orderBy('history.createdAt', 'DESC')
+      .limit(limit)
+      .getMany();
   }
 }

@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserHistory } from './user-history.entity';
 
 @Entity('users')
 export class User {
@@ -73,4 +75,7 @@ export class User {
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
   }
+
+  @OneToMany(() => UserHistory, (history) => history.user)
+  histories: UserHistory[];
 }

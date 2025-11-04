@@ -11,6 +11,7 @@ import { join } from 'path';
 import axios from 'axios';
 import FormData from 'form-data';
 import { createReadStream } from 'fs';
+import { UsersService } from '../users/users.service';
 
 export interface FindAllOptions {
   page: number;
@@ -25,6 +26,7 @@ export class MedicinesService {
   constructor(
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
+    private usersService: UsersService,
   ) {}
 
   async create(
@@ -270,5 +272,15 @@ export class MedicinesService {
           error instanceof Error ? error.message : String(error);
         console.warn('Failed to notify ML service:', errorMessage);
       });
+  }
+
+  async saveUserHistory(historyData: any): Promise<any> {
+    try {
+      const history = await this.usersService.createUserHistory(historyData);
+      return history;
+    } catch (error) {
+      console.error('Failed to save user history:', error);
+      throw error;
+    }
   }
 }

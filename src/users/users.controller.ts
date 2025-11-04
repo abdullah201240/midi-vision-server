@@ -22,7 +22,18 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UserHistoryDto } from './dto/user-history.dto';
 import { userImageMulterConfig } from './config/multer.config';
+
+interface AuthenticatedRequest {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    [key: string]: any;
+  };
+}
 
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -31,14 +42,28 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@Request() req): Promise<UserResponseDto> {
+  getProfile(@Request() req: AuthenticatedRequest): UserResponseDto {
     return new UserResponseDto(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile/history')
+  async getUserHistory(
+    @Request() req: AuthenticatedRequest,
+    @Query('limit') limit?: string,
+  ) {
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    const history = await this.usersService.getUserHistory(
+      req.user.id,
+      limitNum,
+    );
+    return history.map((h) => new UserHistoryDto(h));
   }
 
   @UseGuards(JwtAuthGuard)
   @Put('profile')
   async updateProfile(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
     // Ensure user can only update their own profile
@@ -50,7 +75,7 @@ export class UsersController {
   @Put('profile/image')
   @UseInterceptors(FileInterceptor('image', userImageMulterConfig))
   async updateProfileImage(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UserResponseDto> {
     const imageName = file?.filename;
@@ -67,7 +92,7 @@ export class UsersController {
   @Put('profile/cover')
   @UseInterceptors(FileInterceptor('coverPhoto', userImageMulterConfig))
   async updateProfileCover(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UserResponseDto> {
     const coverPhotoName = file?.filename;
@@ -84,7 +109,9 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('profile/cover')
-  async removeProfileCover(@Request() req): Promise<UserResponseDto> {
+  async removeProfileCover(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<UserResponseDto> {
     // Create an update DTO to set cover photo to null
     const updateProfileDto = new UpdateProfileDto();
     updateProfileDto.coverPhoto = null;
@@ -100,7 +127,9 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('profile/image')
-  async removeProfileImage(@Request() req): Promise<UserResponseDto> {
+  async removeProfileImage(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<UserResponseDto> {
     // Create an update DTO to set image to null
     const updateProfileDto = new UpdateProfileDto();
     updateProfileDto.image = null;
