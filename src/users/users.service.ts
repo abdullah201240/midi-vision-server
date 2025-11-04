@@ -137,7 +137,11 @@ export class UsersService {
     }
 
     // Delete old image if new image is uploaded or if explicitly requested
-    if ((newImage && user.image) || (deleteImage && user.image) || (updateUserDto.image === null && user.image)) {
+    if (
+      (newImage && user.image) ||
+      (deleteImage && user.image) ||
+      (updateUserDto.image === null && user.image)
+    ) {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
@@ -146,11 +150,18 @@ export class UsersService {
     }
 
     // Delete old cover photo if new cover photo is uploaded or if explicitly requested
-    if ((newCoverPhoto && user.coverPhoto) || (deleteCoverPhoto && user.coverPhoto) || (updateUserDto.coverPhoto === null && user.coverPhoto)) {
+    if (
+      (newCoverPhoto && user.coverPhoto) ||
+      (deleteCoverPhoto && user.coverPhoto) ||
+      (updateUserDto.coverPhoto === null && user.coverPhoto)
+    ) {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.coverPhoto));
       } catch (error) {
-        console.error(`Failed to delete old cover photo ${user.coverPhoto}:`, error);
+        console.error(
+          `Failed to delete old cover photo ${user.coverPhoto}:`,
+          error,
+        );
       }
     }
 
@@ -160,7 +171,7 @@ export class UsersService {
     } else if (updateUserDto.image === null) {
       user.image = null;
     }
-    
+
     if (newCoverPhoto !== undefined) {
       user.coverPhoto = newCoverPhoto;
     } else if (updateUserDto.coverPhoto === null) {
