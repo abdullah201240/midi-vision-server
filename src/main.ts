@@ -3,6 +3,23 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { networkInterfaces } from 'os';
+
+function getLocalIpAddress(): string | null {
+  const nets = networkInterfaces();
+  for (const interfaceName of Object.keys(nets)) {
+    const netInterface = nets[interfaceName];
+    if (!netInterface) continue;
+
+    for (const net of netInterface) {
+      // Skip internal (loopback) and IPv6 addresses
+      if (!net.internal && net.family === 'IPv4') {
+        return net.address;
+      }
+    }
+  }
+  return null;
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -12,12 +29,7 @@ async function bootstrap() {
   // Enable CORS for frontend communication
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
-    : [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5001',
-        'http://127.0.0.1:3000',
-      ];
+    : [];
 
   app.enableCors({
     origin: corsOrigins,
@@ -54,10 +66,20 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  // Listen on all interfaces instead of just localhost
+  await app.listen(port, '0.0.0.0');
 
   const logger = new Logger('Bootstrap');
-  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Application is running on: http://0.0.0.0:${port}`);
+
+  // Display the actual local IP address
+  const localIp = getLocalIpAddress();
+  if (localIp) {
+    logger.log(`Accessible externally at: http://${localIp}:${port}`);
+  } else {
+    logger.log('Could not determine local IP address');
+  }
+
   logger.log(`CORS enabled for: ${corsOrigins.join(', ')}`);
   logger.log(`TypeORM logging: ${process.env.TYPEORM_LOGGING}`);
 }

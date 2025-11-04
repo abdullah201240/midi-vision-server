@@ -7,14 +7,31 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
+    public usersService: UsersService,
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<Partial<UserResponseDto> | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await user.validatePassword(password))) {
-      const { password, ...result } = user;
+      // Create a copy with only properties that exist in UserResponseDto
+      const result: Partial<UserResponseDto> = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        gender: user.gender,
+        dateOfBirth: user.dateOfBirth,
+        image: user.image,
+        coverPhoto: user.coverPhoto,
+        role: user.role,
+        location: user.location,
+        bio: user.bio,
+        createdAt: user.createdAt,
+      };
       return result;
     }
     return null;
@@ -28,26 +45,26 @@ export class AuthService {
     access_token: string;
   }> {
     const user = await this.usersService.create(registerDto, imageName);
-    const access_token = await this.generateToken(user);
+    const access_token = this.generateToken(user);
     return {
       user,
       access_token,
     };
   }
 
-  async login(user: any): Promise<{
+  login(user: Partial<UserResponseDto>): {
     user: UserResponseDto;
     access_token: string;
-  }> {
+  } {
     const userResponse = new UserResponseDto(user);
-    const access_token = await this.generateToken(userResponse);
+    const access_token = this.generateToken(userResponse);
     return {
       user: userResponse,
       access_token,
     };
   }
 
-  private async generateToken(user: UserResponseDto): Promise<string> {
+  private generateToken(user: UserResponseDto): string {
     const payload = {
       email: user.email,
       sub: user.id,
