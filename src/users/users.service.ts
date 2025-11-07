@@ -161,7 +161,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
-        console.error(`Failed to delete old image ${user.image}:`, error);
+        // Image deletion failed - continue
       }
     }
 
@@ -174,10 +174,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.coverPhoto));
       } catch (error) {
-        console.error(
-          `Failed to delete old cover photo ${user.coverPhoto}:`,
-          error,
-        );
+        // Cover photo deletion failed - continue
       }
     }
 
@@ -209,7 +206,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
-        console.error(`Failed to delete image ${user.image}:`, error);
+        // Image deletion failed - continue
       }
     }
 

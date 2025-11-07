@@ -18,5 +18,5 @@ export const AppDataSource = new DataSource({
   migrations: [__dirname + '/migrations/*.ts'],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,
-  logging: process.env.TYPEORM_LOGGING === 'true',
+  logging: false,
 });

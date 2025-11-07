@@ -33,7 +33,7 @@ import databaseConfig from './config/database.config';
       database: process.env.DB_DATABASE,
       entities: [User, UserHistory, Medicine],
       synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
-      logging: process.env.TYPEORM_LOGGING === 'true',
+      logging: false,
     }),
     UsersModule,
     AuthModule,

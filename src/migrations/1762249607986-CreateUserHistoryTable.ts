@@ -10,22 +10,22 @@ export class CreateUserHistoryTable1762249607986 implements MigrationInterface {
         "resultData" jsonb,
         "isSuccessful" boolean NOT NULL DEFAULT false,
         "errorMessage" text,
-        "userId" uuid,
-        "medicineId" uuid,
+        "user_id" uuid,
+        "medicine_id" uuid,
         "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_user_histories" PRIMARY KEY ("id"),
-        CONSTRAINT "FK_user_histories_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE,
-        CONSTRAINT "FK_user_histories_medicine" FOREIGN KEY ("medicineId") REFERENCES "medicines"("id") ON DELETE SET NULL
+        CONSTRAINT "FK_user_histories_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_user_histories_medicine" FOREIGN KEY ("medicine_id") REFERENCES "medicines"("id") ON DELETE SET NULL
       )
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_user_histories_user_id" ON "user_histories" ("userId")
+      CREATE INDEX "IDX_user_histories_user_id" ON "user_histories" ("user_id")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_user_histories_medicine_id" ON "user_histories" ("medicineId")
+      CREATE INDEX "IDX_user_histories_medicine_id" ON "user_histories" ("medicine_id")
     `);
 
     await queryRunner.query(`

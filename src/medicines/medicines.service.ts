@@ -138,7 +138,7 @@ export class MedicinesService {
           try {
             await unlink(join(process.cwd(), 'uploads', 'medicines', image));
           } catch (error) {
-            console.error(`Failed to delete image ${image}:`, error);
+            // Image deletion failed - continue
           }
         }),
       );
@@ -169,7 +169,7 @@ export class MedicinesService {
     try {
       await unlink(join(process.cwd(), 'uploads', 'medicines', imageName));
     } catch (error) {
-      console.error(`Failed to delete image ${imageName}:`, error);
+      // Image deletion failed - continue
     }
 
     // Remove image from array
@@ -189,8 +189,6 @@ export class MedicinesService {
       const formData = new FormData();
       formData.append('image', createReadStream(filePath));
 
-      console.log('Sending image to ML server:', file.filename);
-
       const response = await axios.post<any[]>(
         'http://localhost:5001/search',
         formData,
@@ -202,26 +200,23 @@ export class MedicinesService {
         },
       );
 
-      console.log(`ML search found ${response.data.length} results`);
-
       // Clean up uploaded file
       try {
         await unlink(filePath);
       } catch (error) {
-        console.error('Failed to delete uploaded file:', error);
+        // File deletion failed - continue
       }
 
       return response.data;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error('ML search error:', errorMessage);
 
       // Clean up uploaded file in case of error
       try {
         await unlink(filePath);
       } catch (unlinkError) {
-        console.error('Failed to delete uploaded file:', unlinkError);
+        // File deletion failed - continue
       }
 
       // Check if it's a timeout error
@@ -264,13 +259,11 @@ export class MedicinesService {
           timeout: 10000, // 10 second timeout
         },
       )
-      .then((response) => {
-        console.log('ML service notified successfully:', response.data);
+      .then(() => {
+        // ML service notified successfully
       })
-      .catch((error) => {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        console.warn('Failed to notify ML service:', errorMessage);
+      .catch(() => {
+        // Failed to notify ML service - continue
       });
   }
 
@@ -279,7 +272,6 @@ export class MedicinesService {
       const history = await this.usersService.createUserHistory(historyData);
       return history;
     } catch (error) {
-      console.error('Failed to save user history:', error);
       throw error;
     }
   }

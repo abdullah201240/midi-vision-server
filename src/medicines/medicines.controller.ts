@@ -161,7 +161,7 @@ export class MedicinesController {
 
         await this.medicinesService.saveUserHistory(historyData);
       } catch (historyError) {
-        console.error('Failed to save user history:', historyError);
+        // Failed to save user history - continue
       }
 
       // If no results found, return empty array instead of throwing error
@@ -184,14 +184,8 @@ export class MedicinesController {
 
         await this.medicinesService.saveUserHistory(historyData);
       } catch (historyError) {
-        console.error(
-          'Failed to save user history for failed scan:',
-          historyError,
-        );
+        // Failed to save user history for failed scan - continue
       }
-
-      // Log the error for debugging but don't expose internal details to client
-      console.error('Image search error:', error);
 
       // Return empty array for non-medical images instead of error
       if (error instanceof NotFoundException) {
