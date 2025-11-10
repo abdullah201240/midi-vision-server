@@ -23,7 +23,7 @@ function getLocalIpAddress(): string | null {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn'],
+    logger: ['error', 'warn', 'log'],
   });
 
   // Enable CORS for frontend communication
@@ -68,6 +68,18 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   // Listen on all interfaces instead of just localhost
   await app.listen(port, '0.0.0.0');
+
+  // Get the local IP address for better visibility
+  const localIp = getLocalIpAddress();
+  const url = `http://localhost:${port}`;
+  const networkUrl = localIp ? `http://${localIp}:${port}` : null;
+
+  // Log server start information
+  Logger.log(`Server is running on port ${port}`, 'Bootstrap');
+  Logger.log(`Local: ${url}`, 'Bootstrap');
+  if (networkUrl) {
+    Logger.log(`Network: ${networkUrl}`, 'Bootstrap');
+  }
 }
 
-void bootstrap();
+bootstrap();

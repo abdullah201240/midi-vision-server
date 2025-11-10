@@ -45,7 +45,7 @@ interface MLSearchResult extends SearchResultDto {
 
 // Define interface for user history data
 interface UserHistoryData {
-  actionType: string;
+  actionType: 'scan' | 'upload' | 'view';
   imageData: string;
   resultData: MLSearchResult[] | null;
   isSuccessful: boolean;
@@ -161,6 +161,7 @@ export class MedicinesController {
 
         await this.medicinesService.saveUserHistory(historyData);
       } catch (historyError) {
+        console.error('Failed to save user history:', historyError);
         // Failed to save user history - continue
       }
 
@@ -184,6 +185,10 @@ export class MedicinesController {
 
         await this.medicinesService.saveUserHistory(historyData);
       } catch (historyError) {
+        console.error(
+          'Failed to save user history for failed scan:',
+          historyError,
+        );
         // Failed to save user history for failed scan - continue
       }
 

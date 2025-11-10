@@ -161,6 +161,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
+        console.error('Image deletion failed:', error);
         // Image deletion failed - continue
       }
     }
@@ -174,6 +175,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.coverPhoto));
       } catch (error) {
+        console.error('Cover photo deletion failed:', error);
         // Cover photo deletion failed - continue
       }
     }
@@ -206,6 +208,7 @@ export class UsersService {
       try {
         await unlink(join(process.cwd(), 'uploads', 'users', user.image));
       } catch (error) {
+        console.error('Image deletion failed:', error);
         // Image deletion failed - continue
       }
     }

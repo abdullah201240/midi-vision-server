@@ -13,6 +13,16 @@ import FormData from 'form-data';
 import { createReadStream } from 'fs';
 import { UsersService } from '../users/users.service';
 
+interface UserHistoryData {
+  actionType: 'scan' | 'upload' | 'view';
+  imageData: string;
+  resultData: any[] | null;
+  isSuccessful: boolean;
+  userId?: string;
+  medicineId?: string;
+  errorMessage?: string;
+}
+
 export interface FindAllOptions {
   page: number;
   limit: number;
@@ -138,6 +148,7 @@ export class MedicinesService {
           try {
             await unlink(join(process.cwd(), 'uploads', 'medicines', image));
           } catch (error) {
+            console.error('Image deletion failed:', error);
             // Image deletion failed - continue
           }
         }),
@@ -169,6 +180,7 @@ export class MedicinesService {
     try {
       await unlink(join(process.cwd(), 'uploads', 'medicines', imageName));
     } catch (error) {
+      console.error('Image deletion failed:', error);
       // Image deletion failed - continue
     }
 
@@ -204,11 +216,13 @@ export class MedicinesService {
       try {
         await unlink(filePath);
       } catch (error) {
+        console.error('File deletion failed:', error);
         // File deletion failed - continue
       }
 
       return response.data;
     } catch (error) {
+      console.error('Image search failed:', error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
@@ -216,6 +230,7 @@ export class MedicinesService {
       try {
         await unlink(filePath);
       } catch (unlinkError) {
+        console.error('File deletion failed:', unlinkError);
         // File deletion failed - continue
       }
 
@@ -267,12 +282,7 @@ export class MedicinesService {
       });
   }
 
-  async saveUserHistory(historyData: any): Promise<any> {
-    try {
-      const history = await this.usersService.createUserHistory(historyData);
-      return history;
-    } catch (error) {
-      throw error;
-    }
+  async saveUserHistory(historyData: UserHistoryData): Promise<any> {
+    return await this.usersService.createUserHistory(historyData);
   }
 }
